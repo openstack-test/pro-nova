@@ -1,0 +1,91 @@
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+#
+# This script is executed in the OpenStack CI *tempest-dsvm-cells job.
+# It's used to configure which tempest tests actually get run.  You can find
+# the CI job configuration here:
+#
+# http://git.openstack.org/cgit/openstack-infra/project-config/tree/jenkins/jobs/devstack-gate.yaml
+#
+# NOTE(sdague): tempest (because of testr) only supports and additive
+# regex for specifying test selection. As such this is a series of
+# negative assertions ?: for strings.
+#
+# Being a regex, an unescaped '.' matches any character, so those
+# should be escaped. There is no need to specify .* at the end of a
+# pattern, as it's handled by the final match.
+
+# Construct a regex to use when limiting scope of tempest
+# to avoid features unsupported by Nova Cells.
+r="^(?!.*"
+
+# skip security group tests
+r="$r(?:tempest\.api\.compute\.security_groups)"
+
+# skip test that requires security groups
+r="$r|(?:tempest\.thirdparty\.boto\.test_ec2_instance_run\.InstanceRunTest\.test_compute_with_volumes)"
+
+# skip aggregates tests
+r="$r|(?:tempest\.api\.compute\.admin\.test_aggregates)"
+r="$r|(?:tempest\.scenario\.test_aggregates_basic_ops)"
+
+# skip availability zone tests
+r="$r|(?:(tempest\.api\.compute\.)(servers\.|admin\.)(test_availability_zone*))"
+
+# skip fixed-ip tests
+r="$r|(?:tempest\.api\.compute\.admin\.test_fixed_ips)"
+
+# skip floating-ip tests
+r="$r|(?:tempest\.api\.compute\.floating_ips)"
+# https://bugs.launchpad.net/tempest/+bug/1513983 - The follow scenario tests rely on Neutron but use floating IPs
+r="$r|(?:tempest\.scenario\.test_network_advanced_server_ops\.TestNetworkAdvancedServerOps\.test_server_connectivity_pause_unpause)"
+r="$r|(?:tempest\.scenario\.test_network_basic_ops\.TestNetworkBasicOps\.test_network_basic_ops)"
+r="$r|(?:tempest\.scenario\.test_network_basic_ops\.TestNetworkBasicOps\.test_update_router_admin_state)"
+r="$r|(?:tempest\.scenario\.test_network_v6\.TestGettingAddress\.test_slaac_from_os)"
+r="$r|(?:tempest\.scenario\.test_security_groups_basic_ops\.TestSecurityGroupsBasicOps\.test_cross_tenant_traffic)"
+
+# exclude the slow tag
+r="$r|(?:.*\[.*\bslow\b.*\])"
+
+# skip current regressions; when adding new entries to this list, add the bug
+# reference with it since this list should shrink
+
+# NOTE(mriedem): Resize tests are skipped in devstack until custom flavors
+# in devstack used in Tempest runs are synced to the cells database.
+r="$r|(?:tempest\.api\.compute\.admin\.test_networks\.NetworksTest\.test_get_network)"
+r="$r|(?:tempest\.api\.compute\.admin\.test_networks\.NetworksTest\.test_list_all_networks)"
+r="$r|(?:tempest\.api\.compute\.servers\.test_server_rescue\.ServerRescueTestJSON)"
+r="$r|(?:tempest\.api\.compute\.servers\.test_create_server\.ServersTestJSON\.test_create_server_with_scheduler_hint_group)"
+r="$r|(?:tempest\.api\.compute\.servers\.test_create_server\.ServersTestManualDisk\.test_create_server_with_scheduler_hint_group)"
+r="$r|(?:tempest\.api\.compute\.servers\.test_virtual_interfaces\.VirtualInterfacesTestJSON\.test_list_virtual_interfaces)"
+r="$r|(?:tempest\.api\.compute\.test_networks\.ComputeNetworksTest\.test_list_networks)"
+r="$r|(?:tempest\.scenario\.test_minimum_basic\.TestMinimumBasicScenario\.test_minimum_basic_scenario)"
+r="$r|(?:tempest\.api\.compute\.servers\.test_server_rescue_negative\.ServerRescueNegativeTestJSON)"
+r="$r|(?:tempest\.scenario\.test_encrypted_cinder_volumes\.TestEncryptedCinderVolumes\.test_encrypted_cinder_volumes_cryptsetup)"
+r="$r|(?:tempest\.scenario\.test_encrypted_cinder_volumes\.TestEncryptedCinderVolumes\.test_encrypted_cinder_volumes_luks)"
+r="$r|(?:tempest\.thirdparty\.boto\.test_ec2_network\.EC2NetworkTest\.test_disassociate_not_associated_floating_ip)"
+r="$r|(?:tempest\.scenario\.test_server_basic_ops\.TestServerBasicOps\.(test_server_basicops|test_server_basic_ops))"
+r="$r|(?:tempest\.scenario\.test_snapshot_pattern\.TestSnapshotPattern\.test_snapshot_pattern)"
+r="$r|(?:tempest\.api\.compute\.admin\.test_hosts\.HostsAdminTestJSON\.test_show_host_detail)"
+r="$r|(?:tempest\.api\.compute\.test_tenant_networks\.ComputeTenantNetworksTest\.test_list_show_tenant_networks)"
+# https://bugs.launchpad.net/nova/+bug/1489581
+r="$r|(?:tempest\.scenario\.test_volume_boot_pattern\.)"
+# https://bugs.launchpad.net/nova/+bug/1445628
+r="$r|(?:tempest\.thirdparty\.boto\.test_ec2_instance_run\.InstanceRunTest\.test_run_idempotent_instances)"
+# https://bugs.launchpad.net/nova/+bug/1466696 - Cells: Race between instance 'unlock' and 'stop' can cause 'stop' to fail
+r="$r|(?:tempest\.api\.compute\.servers\.test_server_actions\.ServerActionsTestJSON\.test_lock_unlock_server)"
+# scheduler hints apparently don't work in devstack cells
+r="$r|(?:tempest\.scenario\.test_server_multinode\.TestServerMultinode\.test_schedule_to_all_nodes)"
+r="$r).*$"
+
+export DEVSTACK_GATE_TEMPEST_REGEX="$r"
