@@ -15,9 +15,7 @@ if [ -f Dockerfile ] && [ -f extend_start.sh ] && [ -f nova.tar ];then
     docker build --tag=172.16.71.222:4000/kollaglue/centos-binary-nova-compute:2.0.1 .
     if [ $? -eq 0 ];then
         docker push 172.16.71.222:4000/kollaglue/centos-binary-nova-compute:2.0.1
-        docker tag 172.16.71.222:4000/kollaglue/centos-binary-nova-compute:2.0.1 172.16.71.229:4000/kollaglue/centos-binary-nova-compute:2.0.1
-        docker push 172.16.71.229:4000/kollaglue/centos-binary-nova-compute:2.0.1
-        docker rmi -f 172.16.71.222:4000/kollaglue/centos-binary-nova-compute:2.0.1 && docker rmi -f 172.16.71.229:4000/kollaglue/centos-binary-nova-compute:2.0.1
+        docker rmi -f 172.16.71.222:4000/kollaglue/centos-binary-nova-compute:2.0.1
     else
         echo "docker build nova-compute failed"
         exit 1
