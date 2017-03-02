@@ -12,10 +12,10 @@ tar -cvf nova.tar nova && mv nova.tar $work_dir/
 
 cd $work_dir
 if [ -f Dockerfile ] && [ -f extend_start.sh ] && [ -f nova.tar ];then
-    docker build --tag=172.16.71.221:4000/kollaglue/centos-binary-nova-compute:$_docker_tag .
+    docker build --tag=172.16.71.221:4000/kollaglue/centos-binary-nova-compute:2.0.1 .
     if [ $? -eq 0 ];then
-        docker push 172.16.71.221:4000/kollaglue/centos-binary-nova-compute:$_docker_tag
-        docker rmi -f 172.16.71.221:4000/kollaglue/centos-binary-nova-compute:$_docker_tag
+        docker push 172.16.71.221:4000/kollaglue/centos-binary-nova-compute:2.0.1
+        docker rmi -f 172.16.71.221:4000/kollaglue/centos-binary-nova-compute:2.0.1
     else
         echo "docker build nova-compute failed"
         exit 1
