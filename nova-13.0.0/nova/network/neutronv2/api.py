@@ -930,7 +930,7 @@ class API(base_api.NetworkAPI):
             instance = objects.Instance.get_by_uuid(
                         context, instance['uuid'],
                         expected_attrs=['system_metadata', 'info_cache'],
-                        use_slave=True)
+                        use_subordinate=True)
         except exception.InstanceNotFound:
             LOG.debug("Instance is deleted during refresh "
                       "info cache", instance=instance)
